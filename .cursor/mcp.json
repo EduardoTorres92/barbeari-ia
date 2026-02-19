@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "neon": {
+      "command": "npx",
+      "args": ["-y", "@neondatabase/mcp-server-neon", "start"],
+      "env": {
+        "NEON_API_KEY": "napi_p8dinzv9teikmfvmuxan053njkz1x7gvzy19lzstq5h08mb6xak8431h4gy46zjm"
+      }
+    }
+  }
+}
