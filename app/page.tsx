@@ -37,11 +37,13 @@ const Home = () => {
             className="rounded-xl object-cover"
           />
         </div>
+
+        <h2 className="mt-6 text-lg font-bold"> Agendamentos</h2>
+
         {/* Card de Agendamento */}
         <Card className="mt-6">
           <CardContent className="flex flex-row items-center justify-between p-0">
             <div className="flex flex-col gap-2 py-5 pl-5">
-              {" "}
               {/* Div Esquerda */}
               <Badge className="w-fit">Confirmado</Badge>
               <h3 className="text-lg font-bold">Corte de Cabelo</h3>
@@ -53,7 +55,6 @@ const Home = () => {
               </div>
             </div>
             <div className="flex flex-col items-center justify-center border-l-2 border-solid border-gray-200 px-5">
-              {" "}
               {/* Div Direita */}
               <p className="text-sm">Fevereiro</p>
               <p className="text-2xl">06</p>
