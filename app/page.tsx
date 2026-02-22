@@ -4,11 +4,12 @@ import { SearchIcon } from "lucide-react"
 import { Button } from "@/app/_components/ui/button"
 import Image from "next/image"
 import { Card, CardContent } from "./_components/ui/card"
-import { Badge } from "./_components/ui/badge"
-import { Avatar } from "./_components/ui/avatar"
-import { AvatarImage } from "./_components/ui/avatar"
+import BoockingItems from "./_components/ui/boocking-items"
 import { db } from "./_lib/prisma"
 import BarbershopItems from "./_components/ui/barbershop-items"
+import { quickSearch } from "./_constants/search"
+
+/* TODO: Receber agendamento como prop para o componente BoockingItems */
 
 const Home = async () => {
   const barbershops = await db.barbershop.findMany({})
@@ -38,45 +39,17 @@ const Home = async () => {
 
         {/* Busca rápida */}
         <div className="mt-6 flex gap-3 overflow-x-scroll [&::-webkit-scrollbar]:hidden">
-          <Button className="gap-2" variant="secondary">
-            <Image src="/cabelo.svg" alt="cabelo" width={16} height={16} />
-            Cabelo
-          </Button>
-
-          <Button className="gap-2" variant="secondary">
-            <Image src="/barba.svg" alt="barba" width={16} height={16} />
-            Barba
-          </Button>
-
-          <Button className="gap-2" variant="secondary">
-            <Image
-              src="/acabamento.svg"
-              alt="acabamento"
-              width={16}
-              height={16}
-            />
-            Visagismo
-          </Button>
-
-          <Button className="gap-2" variant="secondary">
-            <Image
-              src="/acabamento.svg"
-              alt="acabamento"
-              width={16}
-              height={16}
-            />
-            Depilação
-          </Button>
-
-          <Button className="gap-2" variant="secondary">
-            <Image
-              src="/acabamento.svg"
-              alt="acabamento"
-              width={16}
-              height={16}
-            />
-            Limpeza de pele
-          </Button>
+          {quickSearch.map((item) => (
+            <Button key={item.title} className="gap-2" variant="secondary">
+              <Image
+                src={item.imageUrl}
+                alt={item.title}
+                width={16}
+                height={16}
+              />
+              {item.title}
+            </Button>
+          ))}
         </div>
 
         {/* Banner */}
@@ -94,27 +67,7 @@ const Home = async () => {
         </h2>
 
         {/* Card de Agendamento */}
-        <Card>
-          <CardContent className="flex flex-row items-center justify-between p-0">
-            <div className="flex flex-col gap-2 py-5 pl-5">
-              {/* Div Esquerda */}
-              <Badge className="w-fit">Confirmado</Badge>
-              <h3 className="text-lg font-bold">Corte de Cabelo</h3>
-              <div className="flex items-center gap-2">
-                <Avatar className="h-6 w-6">
-                  <AvatarImage src="https://utfs.io/f/0ddfbd26-a424-43a0-aaf3-c3f1dc6be6d1-1kgxo7.png" />
-                </Avatar>
-                <p className="text-sm">Barbearia do João</p>
-              </div>
-            </div>
-            <div className="flex flex-col items-center justify-center border-l-2 border-solid border-gray-200 px-5">
-              {/* Div Direita */}
-              <p className="text-sm">Fevereiro</p>
-              <p className="text-2xl">06</p>
-              <p className="text-sm">09:45</p>
-            </div>
-          </CardContent>
-        </Card>
+        <BoockingItems />
 
         {/* Cards de Barbeiros */}
         <h2 className="mb-3 mt-6 text-xs font-bold uppercase text-gray-400">
