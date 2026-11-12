@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Pente Fino · Barbearia</title>
+  <meta name="description" content="Degradê, navalha e barba na toalha quente. Escolha o barbeiro, o horário e segure a cadeira em menos de um minuto.">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="icon" href="/marca.svg" type="image/svg+xml">
+  <!-- primeira pintura: nunca a página crua. A abertura liga aqui, antes de qualquer arquivo, com o CSS crítico dela
+       inline (fundo preto, textura de cabelo, nome escondido até a fonte chegar); a folha do site vem em <link> -->
+  <script>
+    (function () {
+      var d = document.documentElement;
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('abertura-on');
+      // a abertura toca sempre do topo (o navegador não devolve a rolagem antiga no recarregamento)
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+      // se o JS não subir em 4 s, a abertura cai e a página aparece normal
+      setTimeout(function () { if (!window.__aberturaViva) { d.classList.remove('abertura-on'); d.classList.add('abertura-fim'); } }, 4000);
+    })();
+  </script>
+  <style>
+    html { background: #070707; color-scheme: dark; }
+    html:not(.assentou) *, html:not(.assentou) *::before, html:not(.assentou) *::after { transition: none !important; }
+    body { margin: 0; background: #070707; }
+    .abertura-on body { overflow: hidden; }
+    /* o cardápio sobe por cima do fim do hero só depois que o JS prende o hero (antes, a margem puxaria ele para a 1ª tela) */
+    html:not(.js-pronto) .cardapio { margin-top: 0 !important; }
+    .abertura-on .nav, .abertura-on [data-ui] { opacity: 0; }
+    .abertura-on .hero__p { opacity: 0; }
+    .abertura-on .hero__cabelo { opacity: 1; }
+    .hero__cabelo { position: absolute; inset: 0; opacity: 0; background: #070707 center / cover no-repeat; }
+    .abertura-on .hero__cabelo { background-image: url(/img/cabelo.webp); }
+  </style>
+  <link rel="preload" href="/img/cabelo.webp" as="image" fetchpriority="high">
+  <link rel="stylesheet" href="/src/styles/site.css">
+</head>
+<body>
+  <a class="pular-conteudo" href="#cardapio">Pular para os serviços</a>
+
+  <header class="nav" data-tema="escuro">
+    <a class="nav__logo" href="#topo" aria-label="Pente Fino, voltar ao início">
+      <svg class="marca" viewBox="0 0 48 20" aria-hidden="true"><use href="#marca"/></svg>
+      <span>Pente Fino</span>
+    </a>
+    <nav class="nav__links" aria-label="Seções">
+      <a href="#cardapio">Serviços</a>
+      <a href="#espelhos">Barbeiros</a>
+      <a href="#clube">Clube</a>
+      <a href="#loja">Loja</a>
+      <a href="#endereco">Endereço</a>
+    </nav>
+    <button class="botao botao--claro botao--seta nav__cta" type="button" data-agendar>Agendar</button>
+  </header>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <!-- a marca: o pente de barbeiro, dentes largos de um lado e finos do outro (a metade fina é o "pente fino") -->
+      <symbol id="marca" viewBox="0 0 48 20">
+        <g fill="currentColor"><rect x="1" y="1" width="46" height="4.4" rx="2.2"/><rect x="1" y="3" width="2.6" height="16" rx="1.3"/><rect x="44.4" y="3" width="2.6" height="16" rx="1.3"/><rect x="6" y="4.6" width="2.2" height="14" rx="1.1"/><rect x="10" y="4.6" width="2.2" height="14" rx="1.1"/><rect x="14" y="4.6" width="2.2" height="14" rx="1.1"/><rect x="18" y="4.6" width="2.2" height="14" rx="1.1"/><rect x="22.9" y="4.6" width="1.3" height="14" rx="0.65"/><rect x="25.6" y="4.6" width="1.3" height="14" rx="0.65"/><rect x="28.3" y="4.6" width="1.3" height="14" rx="0.65"/><rect x="31" y="4.6" width="1.3" height="14" rx="0.65"/><rect x="33.7" y="4.6" width="1.3" height="14" rx="0.65"/><rect x="36.4" y="4.6" width="1.3" height="14" rx="0.65"/><rect x="39.1" y="4.6" width="1.3" height="14" rx="0.65"/><rect x="41.8" y="4.6" width="1.3" height="14" rx="0.65"/></g>
+      </symbol>
+      <symbol id="seta" viewBox="0 0 16 16"><path d="M4.5 11.5l7-7M5.5 4.5h6v6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="mais" viewBox="0 0 16 16"><path d="M8 2.5v11M2.5 8h11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+      <symbol id="tesoura" viewBox="0 0 24 48"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M10.5 30L13 3.5M13.5 30L11 3.5"/><circle cx="7.5" cy="37.5" r="4.6"/><circle cx="16.5" cy="37.5" r="4.6"/><path d="M10.6 33.2l1.4-3.2 1.4 3.2"/></g></symbol>
+    </defs>
+  </svg>
+
+  <main id="topo">
+    <!-- HERO: abre como a tela da abertura (cabelo + pente passando) e assenta na cadeira sob o foco -->
+    <section class="hero" data-cena aria-labelledby="hero-titulo">
+      <div class="hero__fixo">
+        <div class="hero__cabelo" aria-hidden="true"></div>
+        <div class="hero__foco" aria-hidden="true"></div>
+        <svg class="hero__trilha" aria-hidden="true"></svg>
+        <img class="hero__pente" src="/img/ferramentas/pente.webp" alt="" aria-hidden="true" decoding="async">
+
+        <h1 class="hero__nome" id="hero-titulo">
+          <span class="hero__frase" data-ui>
+            <span class="hero__frase-leve">Você escolhe o corte.</span>
+            <span class="hero__frase-forte">A gente passa o</span>
+          </span>
+          <span class="hero__p hero__p--1" data-t="pente">pente</span>
+          <span class="hero__p hero__p--2" data-t="fino">fino</span>
+        </h1>
+        <canvas class="hero__gl" aria-hidden="true"></canvas>
+
+        <p class="hero__status mono" data-ui><span class="ponto" aria-hidden="true"></span><span data-status>Aberto agora · próxima cadeira 14:40</span></p>
+        <div class="hero__base" data-ui>
+          <p class="hero__texto">Degradê, navalha e barba na toalha quente. <strong>Agende seu barbeiro em menos de um minuto.</strong></p>
+          <div class="hero__botoes">
+            <button class="botao botao--claro botao--seta" type="button" data-agendar>Agendar cadeira</button>
+            <a class="botao botao--linha" href="#cardapio">Ver preços</a>
+          </div>
+          <p class="hero__nota mono"><span aria-hidden="true">★★★★★</span> 4,9 · 612 avaliações no Google</p>
+        </div>
+
+        <div class="abertura__ui" aria-hidden="true">
+          <p class="abertura__canto abertura__canto--se mono">Pente Fino · Barbearia</p>
+          <button class="abertura__pular mono" type="button" tabindex="-1">Pular →</button>
+          <p class="abertura__canto abertura__canto--ie mono">Corte · barba · toalha quente</p>
+          <p class="abertura__canto abertura__canto--id mono">Pente <b data-contador>#8</b></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- #0 O CARDÁPIO: serviços numerados como os pentes da máquina; a ferramenta do serviço segue o cursor -->
+    <section class="cardapio secao secao--clara" id="cardapio" aria-labelledby="cardapio-titulo">
+      <div class="secao__miolo">
+        <p class="rotulo mono">#0 · Cardápio</p>
+        <h2 class="titulo" id="cardapio-titulo" data-titulo><span class="leve">Todo corte</span> <span class="forte">tem um número.</span></h2>
+        <p class="secao__texto">O preço já inclui a lavagem, a toalha quente no pescoço e o pezinho na saída. Sem surpresa na cadeira.</p>
+        <ol class="cardapio__lista" data-lista>
+          <li class="linha" data-servico="0" data-ferramenta="maquina">
+            <span class="linha__num">#0</span>
+            <span class="linha__nome"><strong>Degradê</strong><small>zero embaixo, esfumado até a altura que você quiser em cima</small></span>
+            <span class="linha__tempo mono">45 min</span>
+            <span class="linha__preco">R$ 60</span>
+            <button class="pilula" type="button" data-agendar="0">Agendar</button>
+          </li>
+          <li class="linha" data-servico="1" data-ferramenta="aparador">
+            <span class="linha__num">#1</span>
+            <span class="linha__nome"><strong>Disfarçado</strong><small>nuca e costeleta limpas, o comprimento fica dos lados</small></span>
+            <span class="linha__tempo mono">40 min</span>
+            <span class="linha__preco">R$ 55</span>
+            <button class="pilula" type="button" data-agendar="1">Agendar</button>
+          </li>
+          <li class="linha" data-servico="2" data-ferramenta="tesoura">
+            <span class="linha__num">#2</span>
+            <span class="linha__nome"><strong>Na tesoura</strong><small>só tesoura, para cabelo mais comprido que precisa de movimento</small></span>
+            <span class="linha__tempo mono">50 min</span>
+            <span class="linha__preco">R$ 70</span>
+            <button class="pilula" type="button" data-agendar="2">Agendar</button>
+          </li>
+          <li class="linha" data-servico="3" data-ferramenta="navalha">
+            <span class="linha__num">#3</span>
+            <span class="linha__nome"><strong>Pezinho e contorno</strong><small>nuca e contorno na navalha entre um corte e outro</small></span>
+            <span class="linha__tempo mono">20 min</span>
+            <span class="linha__preco">R$ 30</span>
+            <button class="pilula" type="button" data-agendar="3">Agendar</button>
+          </li>
+          <li class="linha" data-servico="4" data-ferramenta="pente">
+            <span class="linha__num">#4</span>
+            <span class="linha__nome"><strong>Barba desenhada</strong><small>desenho, linha e toalha quente no fim</small></span>
+            <span class="linha__tempo mono">25 min</span>
+            <span class="linha__preco">R$ 40</span>
+            <button class="pilula" type="button" data-agendar="4">Agendar</button>
+          </li>
+          <li class="linha" data-servico="5" data-ferramenta="pincel">
+            <span class="linha__num">#5</span>
+            <span class="linha__nome"><strong>Barba na toalha quente</strong><small>duas toalhas, espuma morna e uma navalha</small></span>
+            <span class="linha__tempo mono">40 min</span>
+            <span class="linha__preco">R$ 50</span>
+            <button class="pilula" type="button" data-agendar="5">Agendar</button>
+          </li>
+          <li class="linha" data-servico="6" data-ferramenta="aparador">
+            <span class="linha__num">#6</span>
+            <span class="linha__nome"><strong>Corte e barba</strong><small>o degradê e a barba na mesma cadeira</small></span>
+            <span class="linha__tempo mono">70 min</span>
+            <span class="linha__preco">R$ 95</span>
+            <button class="pilula" type="button" data-agendar="6">Agendar</button>
+          </li>
+        </ol>
+        <p class="cardapio__pe mono">Todo serviço termina com o pezinho na navalha · Pix e cartão na cadeira</p>
+      </div>
+      <div class="cardapio__ferramenta" aria-hidden="true"></div>
+    </section>
+
+    <!-- #1 POR QUE AGENDAR: a frase no meio; relógio, pomada e borrifador giram em volta e trocam o dado de baixo -->
+    <section class="manifesto secao--clara" id="porque" data-cena aria-labelledby="manifesto-titulo">
+      <div class="manifesto__fixo">
+        <p class="rotulo mono manifesto__rotulo">#1 · Por que agendar aqui</p>
+        <canvas class="manifesto__gl manifesto__gl--fundo" aria-hidden="true"></canvas>
+        <h2 class="manifesto__frase" id="manifesto-titulo" data-titulo>
+          <span class="leve">Ninguém merece mandar direct à meia-noite por</span>
+          <span class="forte">um horário às 14h.</span>
+        </h2>
+        <canvas class="manifesto__gl manifesto__gl--frente"></canvas>
+        <div class="manifesto__pilula" aria-live="polite">
+          <span class="manifesto__grande" data-fato-grande>−1 dia</span>
+          <span class="manifesto__legenda mono" data-fato-legenda>lembrete no WhatsApp na véspera</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- #2 AS CADEIRAS: quatro espelhos com luminária; o escolhido abre e acende -->
+    <section class="espelhos secao secao--escura" id="espelhos" data-cena aria-labelledby="espelhos-titulo">
+      <div class="espelhos__fixo">
+        <div class="secao__miolo">
+          <p class="rotulo mono">#2 · As cadeiras</p>
+          <h2 class="titulo" id="espelhos-titulo" data-titulo><span class="leve">Quatro espelhos.</span> <span class="forte">Escolha o seu.</span></h2>
+          <p class="secao__texto">Cada barbeiro tem a própria bancada e a própria agenda. Escolha um espelho para acender a luz dele.</p>
+          <div class="espelhos__fila" role="tablist" aria-label="Barbeiros">
+            <button class="espelho is-ativo" type="button" role="tab" aria-selected="true" data-barbeiro="0">
+              <span class="espelho__luminaria" aria-hidden="true"><i></i></span>
+              <span class="espelho__vidro"><img src="/img/espelho-1.webp" alt="Caio fazendo um degradê na máquina, visto pelo espelho" loading="lazy" decoding="async"></span>
+              <span class="espelho__info"><span class="espelho__num">#1</span><span class="espelho__nome">Caio</span><span class="espelho__extra mono">Degradê e disfarçado · 9 anos de cadeira</span></span>
+            </button>
+            <button class="espelho" type="button" role="tab" aria-selected="false" data-barbeiro="1">
+              <span class="espelho__luminaria" aria-hidden="true"><i></i></span>
+              <span class="espelho__vidro"><img src="/img/espelho-2.webp" alt="Renan acertando o contorno com o aparador" loading="lazy" decoding="async"></span>
+              <span class="espelho__info"><span class="espelho__num">#2</span><span class="espelho__nome">Renan</span><span class="espelho__extra mono">Desenho e contorno · 6 anos de cadeira</span></span>
+            </button>
+            <button class="espelho" type="button" role="tab" aria-selected="false" data-barbeiro="2">
+              <span class="espelho__luminaria" aria-hidden="true"><i></i></span>
+              <span class="espelho__vidro"><img src="/img/espelho-3.webp" alt="Seu Toninho cortando na tesoura sobre o pente" loading="lazy" decoding="async"></span>
+              <span class="espelho__info"><span class="espelho__num">#3</span><span class="espelho__nome">Toninho</span><span class="espelho__extra mono">Tesoura e navalha · 31 anos de cadeira</span></span>
+            </button>
+            <button class="espelho" type="button" role="tab" aria-selected="false" data-barbeiro="3">
+              <span class="espelho__luminaria" aria-hidden="true"><i></i></span>
+              <span class="espelho__vidro"><img src="/img/espelho-4.webp" alt="Davi fazendo a barba na navalha com toalha quente" loading="lazy" decoding="async"></span>
+              <span class="espelho__info"><span class="espelho__num">#4</span><span class="espelho__nome">Davi</span><span class="espelho__extra mono">Barba e toalha quente · 11 anos de cadeira</span></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CORTES: filtro por barbeiro; a foto vira de costas no hover (no toque, no toque) -->
+    <section class="cortes secao secao--escura" id="cortes" aria-labelledby="cortes-titulo">
+      <div class="secao__miolo">
+        <h2 class="sr" id="cortes-titulo">Cortes da casa</h2>
+        <div class="filtros" role="group" aria-label="Filtrar cortes por barbeiro">
+          <button class="filtro is-ativo" type="button" data-filtro="todos" aria-pressed="true">Todos</button>
+          <button class="filtro" type="button" data-filtro="0" aria-pressed="false">Caio</button>
+          <button class="filtro" type="button" data-filtro="1" aria-pressed="false">Renan</button>
+          <button class="filtro" type="button" data-filtro="2" aria-pressed="false">Toninho</button>
+          <button class="filtro" type="button" data-filtro="3" aria-pressed="false">Davi</button>
+        </div>
+        <ul class="cortes__grade">
+          <li class="corte" data-barbeiro="0">
+            <button class="corte__foto" type="button" aria-label="Ver o degradê com risca de costas">
+              <img class="corte__frente" src="/img/cortes/corte-1-frente.webp" alt="Degradê com risca, de frente" loading="lazy" decoding="async">
+              <img class="corte__costas" src="/img/cortes/corte-1-costas.webp" alt="" loading="lazy" decoding="async">
+              <span class="corte__dica mono">Ver de costas</span>
+            </button>
+            <div class="corte__pe"><h3>Degradê com risca</h3><span class="corte__preco">R$ 65</span><button class="corte__agendar mono" type="button" data-agendar="0" data-com="0">Agendar este corte</button></div>
+          </li>
+          <li class="corte" data-barbeiro="1">
+            <button class="corte__foto" type="button" aria-label="Ver o cacheado disfarçado de costas">
+              <img class="corte__frente" src="/img/cortes/corte-2-frente.webp" alt="Cacheado com disfarçado, de frente" loading="lazy" decoding="async">
+              <img class="corte__costas" src="/img/cortes/corte-2-costas.webp" alt="" loading="lazy" decoding="async">
+              <span class="corte__dica mono">Ver de costas</span>
+            </button>
+            <div class="corte__pe"><h3>Cacheado disfarçado</h3><span class="corte__preco">R$ 60</span><button class="corte__agendar mono" type="button" data-agendar="1" data-com="1">Agendar este corte</button></div>
+          </li>
+          <li class="corte" data-barbeiro="0">
+            <button class="corte__foto" type="button" aria-label="Ver a franja texturizada de costas">
+              <img class="corte__frente" src="/img/cortes/corte-3-frente.webp" alt="Franja texturizada, de frente" loading="lazy" decoding="async">
+              <img class="corte__costas" src="/img/cortes/corte-3-costas.webp" alt="" loading="lazy" decoding="async">
+              <span class="corte__dica mono">Ver de costas</span>
+            </button>
+            <div class="corte__pe"><h3>Franja texturizada</h3><span class="corte__preco">R$ 70</span><button class="corte__agendar mono" type="button" data-agendar="0" data-com="0">Agendar este corte</button></div>
+          </li>
+          <li class="corte" data-barbeiro="2">
+            <button class="corte__foto" type="button" aria-label="Ver o social com risca de costas">
+              <img class="corte__frente" src="/img/cortes/corte-4-frente.webp" alt="Social com risca lateral, de frente" loading="lazy" decoding="async">
+              <img class="corte__costas" src="/img/cortes/corte-4-costas.webp" alt="" loading="lazy" decoding="async">
+              <span class="corte__dica mono">Ver de costas</span>
+            </button>
+            <div class="corte__pe"><h3>Social com risca</h3><span class="corte__preco">R$ 70</span><button class="corte__agendar mono" type="button" data-agendar="2" data-com="2">Agendar este corte</button></div>
+          </li>
+          <li class="corte" data-barbeiro="3">
+            <button class="corte__foto" type="button" aria-label="Ver a máquina com contorno de costas">
+              <img class="corte__frente" src="/img/cortes/corte-5-frente.webp" alt="Máquina com contorno e barba, de frente" loading="lazy" decoding="async">
+              <img class="corte__costas" src="/img/cortes/corte-5-costas.webp" alt="" loading="lazy" decoding="async">
+              <span class="corte__dica mono">Ver de costas</span>
+            </button>
+            <div class="corte__pe"><h3>Máquina e barba</h3><span class="corte__preco">R$ 85</span><button class="corte__agendar mono" type="button" data-agendar="6" data-com="3">Agendar este corte</button></div>
+          </li>
+          <li class="corte" data-barbeiro="2">
+            <button class="corte__foto" type="button" aria-label="Ver o topete solto de costas">
+              <img class="corte__frente" src="/img/cortes/corte-6-frente.webp" alt="Topete solto, de frente" loading="lazy" decoding="async">
+              <img class="corte__costas" src="/img/cortes/corte-6-costas.webp" alt="" loading="lazy" decoding="async">
+              <span class="corte__dica mono">Ver de costas</span>
+            </button>
+            <div class="corte__pe"><h3>Topete solto</h3><span class="corte__preco">R$ 70</span><button class="corte__agendar mono" type="button" data-agendar="2" data-com="2">Agendar este corte</button></div>
+          </li>
+          <li class="corte" data-barbeiro="1">
+            <button class="corte__foto" type="button" aria-label="Ver o degradê com desenho de costas">
+              <img class="corte__frente" src="/img/cortes/corte-7-frente.webp" alt="Degradê com desenho na lateral, de frente" loading="lazy" decoding="async">
+              <img class="corte__costas" src="/img/cortes/corte-7-costas.webp" alt="" loading="lazy" decoding="async">
+              <span class="corte__dica mono">Ver de costas</span>
+            </button>
+            <div class="corte__pe"><h3>Degradê com desenho</h3><span class="corte__preco">R$ 75</span><button class="corte__agendar mono" type="button" data-agendar="0" data-com="1">Agendar este corte</button></div>
+          </li>
+          <li class="corte" data-barbeiro="3">
+            <button class="corte__foto" type="button" aria-label="Ver a barba cheia de costas">
+              <img class="corte__frente" src="/img/cortes/corte-8-frente.webp" alt="Barba cheia desenhada com degradê baixo, de frente" loading="lazy" decoding="async">
+              <img class="corte__costas" src="/img/cortes/corte-8-costas.webp" alt="" loading="lazy" decoding="async">
+              <span class="corte__dica mono">Ver de costas</span>
+            </button>
+            <div class="corte__pe"><h3>Barba cheia</h3><span class="corte__preco">R$ 95</span><button class="corte__agendar mono" type="button" data-agendar="6" data-com="3">Agendar este corte</button></div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- #3 O CLUBE: três planos em leque, o do meio escuro; a economia conta quando entra -->
+    <section class="clube secao secao--clara" id="clube" aria-labelledby="clube-titulo">
+      <div class="secao__miolo">
+        <p class="rotulo mono">#3 · O clube</p>
+        <h2 class="titulo" id="clube-titulo" data-titulo><span class="leve">Seu corte,</span> <span class="forte">no calendário.</span></h2>
+        <p class="secao__texto">Um degradê segura umas três semanas. Quem é do clube tem cadeira fixa e paga menos do que avulso.</p>
+        <div class="clube__leque">
+          <article class="plano plano--a">
+            <h3 class="plano__nome mono">Pezinho</h3>
+            <p class="plano__preco"><span>R$ 69</span><small>/mês</small></p>
+            <ul class="plano__itens"><li>Dois pezinhos por mês</li><li>10% em qualquer corte</li><li>Agenda com 14 dias de antecedência</li></ul>
+            <p class="plano__economia mono">Você economiza <b data-conta="11">R$ 00</b> por mês</p>
+            <button class="botao botao--linha botao--pequeno" type="button" data-agendar>Assinar</button>
+          </article>
+          <article class="plano plano--b">
+            <span class="plano__selo mono">Mais escolhido</span>
+            <h3 class="plano__nome mono">Clube do degradê</h3>
+            <p class="plano__preco"><span>R$ 149</span><small>/mês</small></p>
+            <ul class="plano__itens"><li>Dois degradês por mês</li><li>Pezinho à vontade</li><li>Sua cadeira segurada sexta sim, sexta não</li></ul>
+            <p class="plano__economia plano__economia--grande mono">Você economiza <b data-conta="31">R$ 00</b> por mês</p>
+            <button class="botao botao--claro botao--seta" type="button" data-agendar>Entrar no clube</button>
+          </article>
+          <article class="plano plano--c">
+            <h3 class="plano__nome mono">Toda semana</h3>
+            <p class="plano__preco"><span>R$ 289</span><small>/mês</small></p>
+            <ul class="plano__itens"><li>Um corte por semana</li><li>Barba desenhada inclusa</li><li>Primeira escolha dos horários de sábado</li></ul>
+            <p class="plano__economia mono">Você economiza <b data-conta="111">R$ 00</b> por mês</p>
+            <button class="botao botao--linha botao--pequeno" type="button" data-agendar>Assinar</button>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- #4 A BANCADA: o que o barbeiro usou, em pedestal sob o foco -->
+    <section class="loja secao secao--escura" id="loja" aria-labelledby="loja-titulo">
+      <div class="secao__miolo">
+        <p class="rotulo mono">#4 · A bancada</p>
+        <h2 class="titulo" id="loja-titulo" data-titulo><span class="leve">O que seu barbeiro</span> <span class="forte">usou em você.</span></h2>
+        <p class="secao__texto">Leve na hora do corte ou receba em casa no dia seguinte.</p>
+        <ul class="loja__grade">
+          <li class="produto"><div class="produto__foto"><img src="/img/produtos/pomada.webp" alt="Lata de pomada matte num pedestal preto" loading="lazy" decoding="async"></div><div class="produto__pe"><h3>Pomada matte</h3><span class="produto__preco">R$ 59</span><span class="produto__det mono">100 g</span><button class="pilula pilula--escura" type="button" data-sacola>Adicionar</button></div></li>
+          <li class="produto"><div class="produto__foto"><img src="/img/produtos/oleo.webp" alt="Frasco de óleo para barba com conta-gotas" loading="lazy" decoding="async"></div><div class="produto__pe"><h3>Óleo para barba</h3><span class="produto__preco">R$ 49</span><span class="produto__det mono">30 ml</span><button class="pilula pilula--escura" type="button" data-sacola>Adicionar</button></div></li>
+          <li class="produto"><div class="produto__foto"><img src="/img/produtos/tonico.webp" alt="Frasco de tônico capilar de vidro fosco" loading="lazy" decoding="async"></div><div class="produto__pe"><h3>Tônico capilar</h3><span class="produto__preco">R$ 45</span><span class="produto__det mono">200 ml</span><button class="pilula pilula--escura" type="button" data-sacola>Adicionar</button></div></li>
+          <li class="produto"><div class="produto__foto"><img src="/img/produtos/pente.webp" alt="Pente de bolso de acetato com lombada cromada" loading="lazy" decoding="async"></div><div class="produto__pe"><h3>Pente de bolso</h3><span class="produto__preco">R$ 29</span><span class="produto__det mono">acetato</span><button class="pilula pilula--escura" type="button" data-sacola>Adicionar</button></div></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- VALE-PRESENTE: cartão de metal que assenta com a rolagem; o valor troca rolando como hodômetro -->
+    <section class="presente secao secao--escura" id="presente" aria-labelledby="presente-titulo">
+      <div class="secao__miolo presente__miolo">
+        <div class="presente__palco">
+          <div class="cartao-metal" aria-hidden="true">
+            <div class="cartao-metal__brilho"></div>
+            <svg class="marca cartao-metal__marca" viewBox="0 0 48 20"><use href="#marca"/></svg>
+            <p class="cartao-metal__nome">Pente Fino</p>
+            <p class="cartao-metal__valor"><span>R$</span> <span class="odometro" data-valor="150">150</span></p>
+            <p class="cartao-metal__pe mono">Vale-presente · qualquer serviço</p>
+          </div>
+        </div>
+        <div class="presente__texto">
+          <h2 class="titulo" id="presente-titulo" data-titulo><span class="leve">Uma cadeira,</span> <span class="forte">de presente.</span></h2>
+          <p class="secao__texto">Chega por e-mail em um minuto, vale para qualquer serviço ou produto e não vence.</p>
+          <div class="presente__valores" role="radiogroup" aria-label="Valor do vale-presente">
+            <button class="valor" type="button" role="radio" aria-checked="false" data-valor="80">R$ 80</button>
+            <button class="valor is-ativo" type="button" role="radio" aria-checked="true" data-valor="150">R$ 150</button>
+            <button class="valor" type="button" role="radio" aria-checked="false" data-valor="250">R$ 250</button>
+          </div>
+          <button class="botao botao--claro botao--seta" type="button" data-presente>Enviar vale-presente</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- #5 DITO NA CADEIRA: a nota rola como hodômetro; os depoimentos estão numa pilha -->
+    <section class="avaliacoes secao secao--clara" id="avaliacoes" aria-labelledby="avaliacoes-titulo">
+      <div class="secao__miolo avaliacoes__miolo">
+        <div class="avaliacoes__nota">
+          <p class="rotulo mono">#5 · Dito na cadeira</p>
+          <h2 class="sr" id="avaliacoes-titulo">Nota 4,9 no Google</h2>
+          <p class="nota-grande" aria-hidden="true"><span class="odometro" data-valor="4">4</span><span class="nota-grande__virgula">,</span><span class="odometro" data-valor="9">9</span></p>
+          <p class="mono avaliacoes__fonte"><span aria-hidden="true">★★★★★</span> · 612 avaliações no Google</p>
+        </div>
+        <div class="pilha" aria-roledescription="carrossel" aria-label="Depoimentos">
+          <blockquote class="depo"><p>“O Caio salvou um degradê que outra barbearia destruiu. Marquei o próximo antes de levantar.”</p><footer class="mono">Marcos · degradê</footer></blockquote>
+          <blockquote class="depo"><p>“Agendei à meia-noite, pelo celular, em menos de um minuto. Cheguei e a cadeira estava me esperando.”</p><footer class="mono">Lucas · disfarçado</footer></blockquote>
+          <blockquote class="depo"><p>“Seu Toninho corta na tesoura como ninguém. Saio com o cabelo que eu pedi.”</p><footer class="mono">Rafael · na tesoura</footer></blockquote>
+          <blockquote class="depo"><p>“A toalha quente do Davi virou o meu ritual de sexta. Vale o mês inteiro.”</p><footer class="mono">Bruno · barba na toalha</footer></blockquote>
+          <button class="pilha__proximo mono" type="button"><span data-pilha-n>1 / 4</span> · Próximo →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- #6 ONDE FICA: endereço, horário (hoje marcado) e o mapa desenhado com o caminho do metrô -->
+    <section class="endereco secao secao--escura" id="endereco" aria-labelledby="endereco-titulo">
+      <div class="secao__miolo endereco__miolo">
+        <div class="endereco__texto">
+          <p class="rotulo mono">#6 · Onde fica</p>
+          <h2 class="titulo titulo--duas" id="endereco-titulo" data-titulo><span class="leve">A duas quadras</span> <span class="forte">do metrô.</span></h2>
+          <address class="endereco__lugar">Rua das Palmeiras, 240 · Centro<br>Estacionamento conveniado na esquina<br><a href="#endereco" class="endereco__fone">WhatsApp (00) 90000-0142</a></address>
+          <dl class="horario mono">
+            <div data-dias="1-5"><dt>Seg – sex</dt><dd>9h – 21h</dd></div>
+            <div data-dias="6"><dt>Sábado</dt><dd>9h – 20h</dd></div>
+            <div data-dias="0"><dt>Domingo</dt><dd>10h – 16h</dd></div>
+          </dl>
+          <p class="adesivo mono">Sem hora marcada até as 18h</p>
+        </div>
+        <figure class="mapa">
+          <svg class="mapa__svg" viewBox="0 0 600 520" role="img" aria-label="Mapa: quatro minutos a pé do metrô até a barbearia">
+            <g class="mapa__ruas" fill="none" stroke-linecap="round">
+              <path d="M-40 150 L640 -60"/><path d="M-40 380 L640 170"/><path d="M-40 610 L640 400"/>
+              <path d="M60 -40 L380 560"/><path d="M300 -40 L620 560"/><path d="M-120 60 L200 660"/>
+              <path class="fina" d="M-40 265 L640 55"/><path class="fina" d="M-40 495 L640 285"/>
+            </g>
+            <g class="mapa__nomes mono">
+              <text transform="translate(452 128) rotate(-17)">Av. Central</text>
+              <text transform="translate(186 300) rotate(62)">R. das Palmeiras</text>
+              <text transform="translate(470 420) rotate(62)">R. do Comércio</text>
+            </g>
+            <path class="mapa__rota" d="M150 372 L262 337 L335 314 L372 304" fill="none"/>
+            <g class="mapa__metro"><circle cx="150" cy="372" r="11"/><text class="mono" x="128" y="410">Metrô</text></g>
+            <g class="mapa__nos"><circle class="mapa__pulso" cx="452" cy="280" r="26"/><circle cx="452" cy="280" r="26"/><text class="mono" x="406" y="336">Pente Fino</text></g>
+          </svg>
+          <figcaption class="mono">4 min a pé do metrô</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ANTES DE AGENDAR: o título sai do desfoque; perguntas em acordeão; a vaga para barbeiros -->
+    <section class="duvidas secao secao--escura" id="duvidas" aria-labelledby="duvidas-titulo">
+      <div class="secao__miolo duvidas__miolo">
+        <h2 class="titulo duvidas__titulo" id="duvidas-titulo" data-titulo="desfoque"><span class="leve">Antes de</span> <span class="forte">agendar.</span></h2>
+        <div class="acordeao">
+          <details><summary>Por que um sinal de R$ 10?<svg viewBox="0 0 16 16"><use href="#mais"/></svg></summary><div class="acordeao__corpo"><p>O sinal segura a sua cadeira e sai do valor do corte. Desmarcou até 12 horas antes, ele volta inteiro. Depois disso, ou se você faltar, ele cobre o tempo do barbeiro.</p></div></details>
+          <details><summary>E se eu me atrasar?<svg viewBox="0 0 16 16"><use href="#mais"/></svg></summary><div class="acordeao__corpo"><p>A cadeira fica segurada por 10 minutos. Passou disso, a gente encaixa você no próximo horário livre do mesmo barbeiro.</p></div></details>
+          <details><summary>Quando marco o próximo corte?<svg viewBox="0 0 16 16"><use href="#mais"/></svg></summary><div class="acordeao__corpo"><p>Um degradê segura umas três semanas. Na confirmação a gente já sugere a data e segura o horário, se você quiser.</p></div></details>
+          <details><summary>Vocês atendem sem hora marcada?<svg viewBox="0 0 16 16"><use href="#mais"/></svg></summary><div class="acordeao__corpo"><p>Sim, de segunda a sábado até as 18h, por ordem de chegada. Com hora marcada você não espera.</p></div></details>
+          <details><summary>Como eu pago?<svg viewBox="0 0 16 16"><use href="#mais"/></svg></summary><div class="acordeao__corpo"><p>Pix, crédito ou débito, na cadeira. O sinal é pago no agendamento e já vem descontado.</p></div></details>
+        </div>
+      </div>
+      <div class="secao__miolo">
+        <aside class="vaga">
+          <svg class="vaga__icone" viewBox="0 0 24 48" aria-hidden="true"><use href="#tesoura"/></svg>
+          <p><span class="leve">Contratando:</span> <strong>duas cadeiras para alugar</strong> <span class="leve">· clientela fixa, seus horários, sua agenda.</span></p>
+          <a class="botao botao--linha botao--pequeno" href="#endereco">Quero saber</a>
+        </aside>
+      </div>
+    </section>
+
+    <!-- FECHO: o próximo horário de verdade e o nome inteiro, aceso pelo foco -->
+    <section class="fecho secao--escura" id="fecho" data-fecho aria-labelledby="fecho-titulo">
+      <div class="secao__miolo fecho__linha">
+        <h2 class="fecho__titulo" id="fecho-titulo" data-titulo><span class="leve" data-fecho-leve>A cadeira fica livre</span> <span class="forte" data-fecho-hora>às 14:40.</span></h2>
+        <button class="botao botao--claro botao--seta" type="button" data-agendar>Agendar cadeira</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <p class="rodape__nome" aria-hidden="true"><span>pente</span> <span>fino</span></p>
+    <div class="rodape__pe">
+      <nav class="rodape__links" aria-label="Rodapé">
+        <a href="#cardapio">Serviços</a><a href="#espelhos">Barbeiros</a><a href="#cortes">Cortes</a><a href="#clube">Clube</a><a href="#loja">Loja</a><a href="#endereco">Endereço</a><a href="#topo">Instagram</a>
+      </nav>
+      <p class="rodape__nota mono">Pente Fino Barbearia · Rua das Palmeiras, 240 · Horários, preços e pessoas de exemplo · Cadeira 3D: “Barber Chair”, de sweedboy69 (CC BY 4.0)</p>
+    </div>
+  </footer>
+
+  <!-- AGENDAMENTO: gaveta em quatro passos; o conteúdo é montado pelo src/agenda.js -->
+  <div class="agenda" hidden>
+    <div class="agenda__veu" data-fechar></div>
+    <aside class="agenda__gaveta" role="dialog" aria-modal="true" aria-labelledby="agenda-titulo">
+      <header class="agenda__topo">
+        <p class="agenda__passo mono" data-passo-rotulo>Passo 1 de 4</p>
+        <h2 class="agenda__titulo" id="agenda-titulo" data-passo-titulo>Escolha o serviço</h2>
+        <span class="agenda__barra" aria-hidden="true"><i></i></span>
+        <button class="agenda__fechar" type="button" data-fechar aria-label="Fechar o agendamento"><svg viewBox="0 0 16 16"><use href="#mais"/></svg></button>
+      </header>
+      <div class="agenda__corpo" data-corpo></div>
+      <footer class="agenda__rodape">
+        <p class="agenda__resumo mono" data-resumo>Nada escolhido ainda</p>
+        <button class="agenda__voltar" type="button" data-voltar>Voltar</button>
+        <button class="botao botao--claro botao--pequeno agenda__seguir" type="button" data-seguir disabled>Continuar</button>
+      </footer>
+    </aside>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
