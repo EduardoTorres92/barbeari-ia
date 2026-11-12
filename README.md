@@ -4,6 +4,15 @@ App de agendamento para barbearias: o cliente encontra barbearias, vê os servi�
 
 > Projeto de estudo, em desenvolvimento.
 
+## Landing page (no ar)
+
+A pasta [`landing/`](landing) tem a landing page da barbearia, com cadeira em 3D (Three.js), animações com GSAP e botões de agendamento que abrem o WhatsApp.
+
+**No ar:** https://barbearia.eduardotorres-dev.com.br
+
+<img src="landing/docs/hero.jpg" width="49%"> <img src="landing/docs/cardapio.jpg" width="49%">
+<img src="landing/docs/espelhos.jpg" width="49%"> <img src="landing/docs/cortes.jpg" width="49%">
+
 ## O que já tem
 
 - **Página inicial** com busca, atalhos por serviço (cabelo, barba, massagem, hidratação…) e listas de barbearias recomendadas e populares, vindas do banco.
