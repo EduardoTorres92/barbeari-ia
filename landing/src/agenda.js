@@ -8,7 +8,8 @@ const DIAS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 const DIAS_LONGOS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 const TITULOS = ['Escolha o serviço', 'Escolha o barbeiro', 'Escolha o horário', 'Segure a cadeira'];
-const fmtHora = (m) => `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`;
+const WHATSAPP = '5515991040846';
+const fmtHora =(m) => `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`;
 const dataLonga = (d) => `${DIAS_LONGOS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]}`;
 const curta = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
 
@@ -47,10 +48,12 @@ export function agenda({ lenis }) {
     const b = ev.target.closest('[data-agendar]');
     if (!b) return;
     ev.preventDefault();
-    gatilho = b;
-    const sv = b.dataset.agendar, com = b.dataset.com;
-    Object.assign(s, { servico: sv !== '' && sv != null ? Number(sv) : null, barbeiro: com != null ? Number(com) + 1 : null, dia: null, hora: null, proximoSegurado: false });
-    abre(s.servico == null ? 0 : s.barbeiro == null ? 1 : 2);
+    // todo botão "Agendar" abre o WhatsApp com a mensagem pronta (cita o serviço quando o botão é de um serviço)
+    const sv = b.dataset.agendar;
+    const servico = sv !== '' && sv != null ? servicos[Number(sv)] : null;
+    let texto = 'Olá! Vim pelo site da barbearia e gostaria de um orçamento';
+    texto += servico ? ` para ${servico.nome}.` : '.';
+    window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(texto)}`, '_blank', 'noopener');
   });
   raiz.querySelectorAll('[data-fechar]').forEach((b) => b.addEventListener('click', fecha));
   addEventListener('keydown', (ev) => {
